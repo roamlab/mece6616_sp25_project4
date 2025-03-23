@@ -10,6 +10,7 @@ from gym import spaces
 import pygame
 import pymunk
 import pymunk.pygame_util
+from pymunk.space_debug_draw_options import SpaceDebugColor
 from pymunk.vec2d import Vec2d
 
 from visualization import pymunk_to_shapely, DrawOptions
