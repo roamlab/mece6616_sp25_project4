@@ -11,7 +11,7 @@ import pygame
 import pymunk
 from pymunk.vec2d import Vec2d
 
-from visualization import pymunk_to_shapely, DrawOptions
+from .visualization import pymunk_to_shapely, DrawOptions
 
 
 
