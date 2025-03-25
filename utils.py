@@ -19,7 +19,7 @@ def save_video_with_cv2(video_path, frames, fps=30):
     out.release()
 
 
-def score_agent(env, mlp_agent, obs_dim, obs_horizon, action_dim, pred_horizon, action_horizon, max_steps, stats, device):
+def score_agent(env, agent, obs_dim, obs_horizon, action_dim, pred_horizon, action_horizon, max_steps, stats, device):
     # Rollout the policy
     score_list = list()
     combined_imgs = [env.render(mode='rgb_array')]
@@ -54,7 +54,7 @@ def score_agent(env, mlp_agent, obs_dim, obs_horizon, action_dim, pred_horizon, 
                     obs_cond = nobs.unsqueeze(0).flatten(start_dim=1)
 
                     # (B, pred_horizon, action_dim)
-                    naction = mlp_agent(obs_cond)
+                    naction = agent(obs_cond)
                     naction = naction.view(B, pred_horizon, action_dim)
 
                 # unnormalize action
