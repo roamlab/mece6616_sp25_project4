@@ -1,6 +1,9 @@
 # Adapted from [Implicit Behavior Cloning](https://implicitbc.github.io/)
 
+import os
 import cv2
+import random
+import torch
 import collections
 import numpy as np
 import skimage.transform as st
@@ -305,6 +308,11 @@ class PushTEnv(gym.Env):
             seed = np.random.randint(0,25536)
         self._seed = seed
         self.np_random = np.random.default_rng(seed)
+
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        os.environ["PYTHONHASHSEED"] = str(seed)
 
     def _handle_collision(self, arbiter, space, data):
         """ Handle collision between objects """
