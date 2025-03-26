@@ -305,14 +305,29 @@ class PushTEnv(gym.Env):
     def seed(self, seed=None):
         """ Set the seed for the environment """
         if seed is None:
-            seed = np.random.randint(0,25536)
+            seed = 0
         self._seed = seed
         self.np_random = np.random.default_rng(seed)
 
+        # python RNG
         random.seed(seed)
+        # numpy RNG
         np.random.seed(seed)
+        # pytorch RNG
         torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
+        # environment-wide hash seeding
         os.environ["PYTHONHASHSEED"] = str(seed)
+
+        # gym's action and observation space seeding
+        if hasattr(self, 'action_space') and hasattr(self.action_space, 'seed'):
+            self.action_space.seed(seed)
+        if hasattr(self, 'observation_space') and hasattr(self.observation_space, 'seed'):
+            self.observation_space.seed(seed)
 
     def _handle_collision(self, arbiter, space, data):
         """ Handle collision between objects """
