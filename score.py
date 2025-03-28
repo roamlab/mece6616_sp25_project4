@@ -222,7 +222,7 @@ def score_part2(env, agent, obs_dim, obs_horizon, action_dim, pred_horizon, acti
     print("Video saved successfully!")
 
 
-def score_part3(env, model, scheduler, obs_dim, num_diffusion_iters, obs_horizon, action_dim, pred_horizon, action_horizon, max_steps, stats, device):
+def score_part3(env, ddpm_inference, model, scheduler, obs_dim, num_diffusion_iters, obs_horizon, action_dim, pred_horizon, action_horizon, max_steps, stats, device):
     # Rollout the policy
     score_list = list()
     combined_imgs = [env.render(mode='rgb_array')]
@@ -241,7 +241,7 @@ def score_part3(env, model, scheduler, obs_dim, num_diffusion_iters, obs_horizon
         done = False
         step_idx = 0
 
-        with tqdm(total=max_steps, desc=f"Eval PushTStateEnv iter:{iter}") as pbar:
+        with tqdm(total=max_steps, desc="Eval PushTStateEnv") as pbar:
             while not done:
                 B = 1
                 # stack the last obs_horizon (2) number of observations
@@ -251,32 +251,17 @@ def score_part3(env, model, scheduler, obs_dim, num_diffusion_iters, obs_horizon
                 # device transfer
                 nobs = torch.from_numpy(nobs).to(device, dtype=torch.float32)
 
-                # infer action
-                with torch.no_grad():
-                    # flatten observation
-                    # (B, obs_horizon * obs_dim)
-                    obs_cond = nobs.unsqueeze(0).flatten(start_dim=1)
-
-                    # initialize action from Guassian noise
-                    noisy_action = torch.randn(
-                        (B, pred_horizon, action_dim), device=device)
-                    naction = noisy_action
-
-                    for k in list(reversed(range(num_diffusion_iters))):
-                        k = torch.tensor(k)
-                        # predict noise
-                        noise_pred = model(
-                            sample=naction,
-                            timestep=k,
-                            global_cond=obs_cond
-                        )
-
-                        # inverse diffusion step (remove noise)
-                        naction = scheduler.denoise(
-                            pred_epsilon=noise_pred,
-                            t=k,
-                            x=naction
-                        )
+                # predict the next action sequence
+                naction = ddpm_inference(
+                    ema_model=model,
+                    ddpm_scheduler=scheduler,
+                    batch_size=B,
+                    nobs=nobs,
+                    num_diffusion_iters=num_diffusion_iters,
+                    pred_horizon=pred_horizon,
+                    action_dim=action_dim,
+                    device=device,
+                )
 
                 # unnormalize action
                 naction = naction.detach().to('cpu').numpy()
@@ -287,7 +272,7 @@ def score_part3(env, model, scheduler, obs_dim, num_diffusion_iters, obs_horizon
                 # only take action_horizon number of actions
                 start = obs_horizon - 1
                 end = start + action_horizon
-                action = action_pred[start:end,:]
+                action = action_pred[start:end, :]
                 # (action_horizon, action_dim)
 
                 # execute action_horizon number of steps
@@ -297,7 +282,7 @@ def score_part3(env, model, scheduler, obs_dim, num_diffusion_iters, obs_horizon
                     obs, reward, done, _, info = env.step(action[i])
                     # save observations
                     obs_deque.append(obs)
-                    #and reward/vis
+                    # and reward/vis
                     rewards.append(reward)
                     combined_imgs.append(env.render(mode='rgb_array'))
 
