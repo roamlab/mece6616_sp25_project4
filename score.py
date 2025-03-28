@@ -56,7 +56,7 @@ def test_cosine_beta_schedule(input_function):
 
 
 
-def score_part1(env, agent, obs_horizon, action_dim, pred_horizon, action_horizon, max_steps, stats, device):
+def score_part1(env, mlp_inference, agent, obs_horizon, action_dim, pred_horizon, action_horizon, max_steps, stats, device):
     # Rollout the policy
     score_list = list()
     combined_imgs = [env.render(mode='rgb_array')]
@@ -85,14 +85,14 @@ def score_part1(env, agent, obs_horizon, action_dim, pred_horizon, action_horizo
                 # device transfer
                 nobs = torch.from_numpy(nobs).to(device, dtype=torch.float32)
 
-                # infer action
-                with torch.no_grad():
-                    # reshape observation to (B, obs_horizon * obs_dim)
-                    obs_cond = nobs.unsqueeze(0).flatten(start_dim=1)
-
-                    # (B, pred_horizon, action_dim)
-                    naction = agent(obs_cond)
-                    naction = naction.view(B, pred_horizon, action_dim)
+                # predict the next action sequence
+                naction = mlp_inference(
+                    model=agent,
+                    batch_size=B,
+                    nobs=nobs,
+                    pred_horizon=pred_horizon,
+                    action_dim=action_dim,
+                )
 
                 # unnormalize action
                 naction = naction.detach().to('cpu').numpy()
@@ -139,7 +139,7 @@ def score_part1(env, agent, obs_horizon, action_dim, pred_horizon, action_horizo
     print("Video saved successfully!")
 
 
-def score_part2(env, agent, obs_horizon, action_dim, pred_horizon, action_horizon, max_steps, stats, device):
+def score_part2(env, cvae_inference, agent, obs_horizon, action_dim, pred_horizon, action_horizon, max_steps, stats, device):
     # Rollout the policy
     score_list = list()
     combined_imgs = [env.render(mode='rgb_array')]
@@ -168,14 +168,14 @@ def score_part2(env, agent, obs_horizon, action_dim, pred_horizon, action_horizo
                 # device transfer
                 nobs = torch.from_numpy(nobs).to(device, dtype=torch.float32)
 
-                # infer action
-                with torch.no_grad():
-                    # reshape observation to (B, obs_horizon * obs_dim)
-                    obs_cond = nobs.unsqueeze(0).flatten(start_dim=1)
-
-                    # (B, pred_horizon, action_dim)
-                    naction = agent.sample_action(obs_cond)
-                    naction = naction.view(B, pred_horizon, action_dim)
+                # predict the next action sequence
+                naction = cvae_inference(
+                    model=agent,
+                    batch_size=B,
+                    nobs=nobs,
+                    pred_horizon=pred_horizon,
+                    action_dim=action_dim,
+                )
 
                 # unnormalize action
                 naction = naction.detach().to('cpu').numpy()
