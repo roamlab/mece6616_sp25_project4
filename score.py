@@ -56,7 +56,7 @@ def test_cosine_beta_schedule(input_function):
 
 
 
-def score_part1(env, agent, obs_dim, obs_horizon, action_dim, pred_horizon, action_horizon, max_steps, stats, device):
+def score_part1(env, agent, obs_horizon, action_dim, pred_horizon, action_horizon, max_steps, stats, device):
     # Rollout the policy
     score_list = list()
     combined_imgs = [env.render(mode='rgb_array')]
@@ -139,7 +139,7 @@ def score_part1(env, agent, obs_dim, obs_horizon, action_dim, pred_horizon, acti
     print("Video saved successfully!")
 
 
-def score_part2(env, agent, obs_dim, obs_horizon, action_dim, pred_horizon, action_horizon, max_steps, stats, device):
+def score_part2(env, agent, obs_horizon, action_dim, pred_horizon, action_horizon, max_steps, stats, device):
     # Rollout the policy
     score_list = list()
     combined_imgs = [env.render(mode='rgb_array')]
@@ -222,7 +222,7 @@ def score_part2(env, agent, obs_dim, obs_horizon, action_dim, pred_horizon, acti
     print("Video saved successfully!")
 
 
-def score_part3(env, ddpm_inference, model, scheduler, obs_dim, num_diffusion_iters, obs_horizon, action_dim, pred_horizon, action_horizon, max_steps, stats, device):
+def score_part3(env, ddpm_inference, model, scheduler, num_diffusion_iters, obs_horizon, action_dim, pred_horizon, action_horizon, max_steps, stats, device):
     # Rollout the policy
     score_list = list()
     combined_imgs = [env.render(mode='rgb_array')]
