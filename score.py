@@ -241,7 +241,7 @@ def score_part3(env, ddpm_inference, model, scheduler, num_diffusion_iters, obs_
         done = False
         step_idx = 0
 
-        with tqdm(total=max_steps, desc="Eval PushTStateEnv") as pbar:
+        with tqdm(total=max_steps, desc=f"Eval PushTStateEnv iter:{iter}") as pbar:
             while not done:
                 B = 1
                 # stack the last obs_horizon (2) number of observations
