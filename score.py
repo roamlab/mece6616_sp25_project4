@@ -289,7 +289,7 @@ def score_part2(env, cvae_inference, agent, obs_horizon, action_dim, pred_horizo
 
     # compute the mean of the scores
     score2 = np.mean(score_list)
-    part2_bound = 0.65
+    part2_bound = 0.7
     grade2 = score2 / part2_bound * 5 if score2 < part2_bound else 5
 
     print('\n---')
@@ -381,7 +381,7 @@ def score_part3(env, ddpm_inference, model, scheduler, num_diffusion_iters, obs_
 
     # compute the mean of the scores
     score3 = np.mean(score_list)
-    part3_bound = 0.85
+    part3_bound = 0.8
     grade3 = score3 / part3_bound * 5 if score3 < part3_bound else 5
 
     print('\n---')
