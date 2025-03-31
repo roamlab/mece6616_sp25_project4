@@ -69,7 +69,7 @@ def test_kl_divergence(new_kl_divergence, batch_size=16, latent_dim=8):
     print(f"Expected KL divergence: {expected_kl.item():.6f}")
     print(f"Absolute difference: {abs(kl_custom.item() - expected_kl.item()):.6f}")
 
-    if not torch.allclose(kl_custom, expected_kl, atol=1e-4):
+    if not torch.allclose(kl_custom, expected_kl, atol=1e-5):
         print("Test FAILED: Outputs differ. Check the implementation of your KL divergence.")
     else:
         print("Test PASSED: Outputs match.")
