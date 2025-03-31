@@ -1,4 +1,6 @@
 import torch
+from torch.distributions import Normal
+from torch.distributions import kl_divergence as torch_kl_div
 import collections
 import numpy as np
 from tqdm.auto import tqdm
@@ -6,6 +8,30 @@ from matplotlib import pyplot as plt
 
 from dataset import normalize_data, unnormalize_data
 from util import save_video_with_cv2
+
+
+def default_kl_divergence(mu, logvar):
+    std = torch.exp(0.5 * logvar)
+    q = Normal(mu, std)
+    p = Normal(torch.zeros_like(mu), torch.ones_like(std))
+    return torch.sum(torch_kl_div(q, p))  # Sum over all elements
+
+# Test and compare
+def test_kl_divergence(new_kl_divergence, batch_size=16, latent_dim=8):
+    mu = torch.randn(batch_size, latent_dim)
+    logvar = torch.randn(batch_size, latent_dim)
+
+    kl_custom = new_kl_divergence(mu, logvar)
+    kl_torch = default_kl_divergence(mu, logvar)
+
+    print(f"Your KL divergence: {kl_custom.item():.6f}")
+    print(f"PyTorch KL divergence: {kl_torch.item():.6f}")
+    print(f"Absolute difference: {abs(kl_custom.item() - kl_torch.item()):.6f}")
+
+    if not torch.allclose(kl_custom, kl_torch, atol=1e-4):
+        print("Test FAILED: Outputs differ. Check the implementation of your KL divergence.")
+    else:
+        print("Test PASSED: Outputs match.")
 
 
 
@@ -35,11 +61,11 @@ def test_cosine_beta_schedule(input_function):
 
     # Compare values
     max_abs_diff = torch.max(torch.abs(ref_betas - test_betas)).item()
-    print(f"Max absolute difference between reference and student betas: {max_abs_diff:.6e}")
+    print(f"Max absolute difference between reference and your betas: {max_abs_diff:.6e}")
 
     # Assert closeness
     assert torch.allclose(ref_betas, test_betas, atol=1e-3), \
-        "Test failed: Your implementation differs from the reference!"
+        "Test FAILED: Outputs differ. Check the implementation of your cosine beta schedule."
 
     # Plot for visual verification
     plt.figure(figsize=(8, 4))
@@ -52,7 +78,7 @@ def test_cosine_beta_schedule(input_function):
     plt.grid(True)
     plt.show()
 
-    print("Test passed!")
+    print("Test PASSED: Outputs match.")
 
 
 
@@ -132,7 +158,13 @@ def score_part1(env, mlp_inference, agent, obs_horizon, action_dim, pred_horizon
         score_list.append(max(rewards))
 
     # compute the mean of the scores
-    print('Mean score: ', np.mean(score_list))
+    score1 = np.mean(score_list)
+    part1_bound = 0.6
+    grade1 = score1 / part1_bound * 5 if score1 < part1_bound else 5
+
+    print('\n---')
+    print(f'Part I Average Score: {score1}')
+    print(f'Part I Grade: {score1:.2f} / {part1_bound:.2f} * 5 = {grade1:.2f}')
 
     # visualize
     save_video_with_cv2('mlp_combined_vis.mp4', combined_imgs, fps=30)
@@ -215,7 +247,13 @@ def score_part2(env, cvae_inference, agent, obs_horizon, action_dim, pred_horizo
         score_list.append(max(rewards))
 
     # compute the mean of the scores
-    print('Mean score: ', np.mean(score_list))
+    score2 = np.mean(score_list)
+    part2_bound = 0.65
+    grade2 = score2 / part2_bound * 5 if score2 < part2_bound else 5
+
+    print('\n---')
+    print(f'Part II Average Score: {score2}')
+    print(f'Part II Grade: {score2:.2f} / {part2_bound:.2f} * 5 = {grade2:.2f}')
 
     # visualize
     save_video_with_cv2('cvae_combined_vis.mp4', combined_imgs, fps=30)
@@ -301,7 +339,13 @@ def score_part3(env, ddpm_inference, model, scheduler, num_diffusion_iters, obs_
         score_list.append(max(rewards))
 
     # compute the mean of the scores
-    print('Mean score: ', np.mean(score_list))
+    score3 = np.mean(score_list)
+    part3_bound = 0.85
+    grade3 = score3 / part3_bound * 5 if score3 < part3_bound else 5
+
+    print('\n---')
+    print(f'Part III Average Score: {score3}')
+    print(f'Part III Grade: {score3:.2f} / {part3_bound:.2f} * 5 = {grade3:.2f}')
 
     # visualize
     save_video_with_cv2('ddpm_combined_vis.mp4', combined_imgs, fps=30)
